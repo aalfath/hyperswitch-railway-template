@@ -1,0 +1,20 @@
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	respond /health "ok" 200
+
+	header {
+		Access-Control-Allow-Origin "*"
+		-Server
+	}
+
+	# Short path for the loader; the versioned path is the canonical one.
+	redir /HyperLoader.js /web/0.135.0/v1/HyperLoader.js 302
+
+	root * /srv
+	encode gzip
+	file_server
+}

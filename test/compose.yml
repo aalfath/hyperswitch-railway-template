@@ -1,0 +1,61 @@
+# Local test of the template's three services with the same variables Railway sets.
+# docker compose -f test/compose.yml -p her-2544 up -d --build
+# The secrets below are throwaway test values for this local run only.
+x-secrets: &secrets
+  ROUTER__SECRETS__ADMIN_API_KEY: test_admin_key_local_only_0123456789
+  ROUTER__SECRETS__JWT_SECRET: test_jwt_secret_local_only_0123456789abcdef
+  ROUTER__SECRETS__MASTER_ENC_KEY: 1111111111111111111111111111111111111111111111111111111111111111
+  ROUTER__API_KEYS__HASH_KEY: 2222222222222222222222222222222222222222222222222222222222222222
+  ROUTER__USER_AUTH_METHODS__ENCRYPTION_KEY: 3333333333333333333333333333333333333333333333333333333333333333
+  ROUTER__PAYMENT_METHOD_AUTH__PM_AUTH_KEY: test_pm_auth_key_local_only_0123456789
+  ROUTER__INTERNAL_MERCHANT_ID_PROFILE_ID_AUTH__PRIMARY_INTERNAL_API_KEY: test_internal_key_local_only_0123456789
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localtestpw
+      POSTGRES_DB: railway
+    volumes: [pg:/var/lib/postgresql]
+  redis:
+    image: redis:8.2
+    command: ["redis-server", "--requirepass", "localredispw", "--save", "60", "1"]
+  router:
+    build: ../router
+    environment:
+      <<: *secrets
+      PORT: "8080"
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: localtestpw
+      PGDATABASE: railway
+      REDISHOST: redis
+      REDISPORT: "6379"
+      REDISUSER: default
+      REDISPASSWORD: localredispw
+      HYPERSWITCH_PUBLIC_URL: http://localhost:42544
+      CONTROL_CENTER_URL: http://localhost:42545
+      SDK_URL: http://localhost:42546
+    volumes: [files:/local/bin/files]
+    ports: ["42544:8080"]
+    depends_on: [postgres, redis]
+  control-center:
+    build: ../control-center
+    environment:
+      HYPERSWITCH_PUBLIC_URL: http://localhost:42544
+      SDK_URL: http://localhost:42546
+    ports: ["42545:9000"]
+  web-sdk:
+    build:
+      context: ../web-sdk
+      args:
+        HYPERSWITCH_PUBLIC_URL: http://localhost:42544
+        SDK_URL: http://localhost:42546
+    environment:
+      PORT: "8080"
+    ports: ["42546:8080"]
+volumes:
+  pg:
+  files:
