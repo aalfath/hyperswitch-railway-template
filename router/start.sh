@@ -71,6 +71,8 @@ export ROUTER__LOG__TELEMETRY__TRACES_ENABLED="${ROUTER__LOG__TELEMETRY__TRACES_
 # release's bundled seed file, which holds the upstream defaults.
 export ROUTER__SUPERPOSITION__ENDPOINT="${ROUTER__SUPERPOSITION__ENDPOINT:-http://127.0.0.1:1}"
 export ROUTER__SUPERPOSITION__BACKUP_FILE_PATH="${ROUTER__SUPERPOSITION__BACKUP_FILE_PATH:-/local/config/superposition_seed.toml}"
+# Poll the (absent) service once a day instead of every 15 s, to keep the logs readable.
+export ROUTER__SUPERPOSITION__POLLING_INTERVAL="${ROUTER__SUPERPOSITION__POLLING_INTERVAL:-86400}"
 
 # --- Files (dispute evidence, themes) live on the Railway volume at /local/bin/files
 mkdir -p /local/bin/files
